@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Country CRUD Dashboard</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+    th { background-color: #00e5ff; }
+    input[type=text] { width: 100%; padding: 6px; margin: 4px 0; }
+    button { margin: 6px 2px; padding: 8px 12px; }
+  </style>
+</head>
+<body>
+  <h2>Country Currency CRUD Dashboard</h2>
+
+  <form id="countryForm">
+    <label>Country Code:</label><br>
+    <input type="text" id="countryCode" required><br>
+
+    <label>Country Name:</label><br>
+    <input type="text" id="countryName" required><br>
+
+    <label>Currency Code:</label><br>
+    <input type="text" id="currencyCode" required><br>
+
+    <label>WHO Region:</label><br>
+    <input type="text" id="whoRegion" required><br>
+
+    <label>Currency Name:</label><br>
+    <input type="text" id="currencyName" required><br>
+
+    <button type="submit">Add / Update</button>
+    <button type="button" onclick="deleteCountry()">Delete</button>
+    <button type="button" onclick="resetForm()">Reset</button>
+  </form>
+
+  <table id="dataTable">
+    <thead>
+      <tr>
+        <th>Country Code</th>
+        <th>Country Name</th>
+        <th>Currency Code</th>
+        <th>WHO Region</th>
+        <th>Currency Name</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script>
+    const scriptURL = 'PASTE_YOUR_DEPLOYED_WEBAPP_URL_HERE';
+
+    document.getElementById('countryForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const data = getFormData();
+      fetch(`${scriptURL}?action=update&${new URLSearchParams(data)}`)
+        .then(res => res.text())
+        .then(loadData);
+    });
+
+    function deleteCountry() {
+      const code = document.getElementById('countryCode').value;
+      if (!code) return alert('Enter Country Code to delete');
+      fetch(`${scriptURL}?action=delete&countryCode=${code}`)
+        .then(res => res.text())
+        .then(loadData);
+    }
+
+    function loadData() {
+      fetch(`${scriptURL}?action=read`)
+        .then(res => res.json())
+        .then(data => {
+          const tbody = document.querySelector('#dataTable tbody');
+          tbody.innerHTML = '';
+          data.forEach(row => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td>${row['Country Code']}</td>
+              <td>${row['Country Name']}</td>
+              <td>${row['Currency Code']}</td>
+              <td>${row['WHO Region']}</td>
+              <td>${row['Currency Name']}</td>
+              <td><button onclick='editRow(${JSON.stringify(row)})'>Edit</button></td>
+            `;
+            tbody.appendChild(tr);
+          });
+          resetForm();
+        });
+    }
+
+    function editRow(row) {
+      document.getElementById('countryCode').value = row['Country Code'];
+      document.getElementById('countryName').value = row['Country Name'];
+      document.getElementById('currencyCode').value = row['Currency Code'];
+      document.getElementById('whoRegion').value = row['WHO Region'];
+      document.getElementById('currencyName').value = row['Currency Name'];
+    }
+
+    function resetForm() {
+      document.getElementById('countryForm').reset();
+    }
+
+    loadData();
+  </script>
+</body>
+</html>
